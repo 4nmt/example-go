@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
-
 	testutil "github.com/neverdiefc/example-go/config/database/pg/util"
 	"github.com/neverdiefc/example-go/domain"
 )
@@ -277,6 +276,153 @@ func TestPGService_Delete(t *testing.T) {
 				return
 			}
 			if err == nil && tt.wantErr != nil {
+				t.Errorf("pgService.Delete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestNewPGService(t *testing.T) {
+	type args struct {
+		db *gorm.DB
+	}
+	tests := []struct {
+		name string
+		args args
+		want Service
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewPGService(tt.args.db); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewPGService() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_pgService_Create(t *testing.T) {
+	type args struct {
+		in0 context.Context
+		p   *domain.User
+	}
+	tests := []struct {
+		name    string
+		s       *pgService
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.s.Create(tt.args.in0, tt.args.p); (err != nil) != tt.wantErr {
+				t.Errorf("pgService.Create() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_pgService_Update(t *testing.T) {
+	type args struct {
+		in0 context.Context
+		p   *domain.User
+	}
+	tests := []struct {
+		name    string
+		s       *pgService
+		args    args
+		want    *domain.User
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.s.Update(tt.args.in0, tt.args.p)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("pgService.Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("pgService.Update() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_pgService_Find(t *testing.T) {
+	type args struct {
+		in0 context.Context
+		p   *domain.User
+	}
+	tests := []struct {
+		name    string
+		s       *pgService
+		args    args
+		want    *domain.User
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.s.Find(tt.args.in0, tt.args.p)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("pgService.Find() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("pgService.Find() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_pgService_FindAll(t *testing.T) {
+	type args struct {
+		in0 context.Context
+	}
+	tests := []struct {
+		name    string
+		s       *pgService
+		args    args
+		want    []domain.User
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.s.FindAll(tt.args.in0)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("pgService.FindAll() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("pgService.FindAll() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_pgService_Delete(t *testing.T) {
+	type args struct {
+		in0 context.Context
+		p   *domain.User
+	}
+	tests := []struct {
+		name    string
+		s       *pgService
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.s.Delete(tt.args.in0, tt.args.p); (err != nil) != tt.wantErr {
 				t.Errorf("pgService.Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
