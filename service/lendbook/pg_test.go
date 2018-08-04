@@ -1,6 +1,6 @@
 // +build integration
 
-package user
+package lendbook
 
 import (
 	"context"
@@ -21,8 +21,22 @@ func TestPGService_Create(t *testing.T) {
 		t.Fatalf("Failed to migrate table by error %v", err)
 	}
 
+	user := domain.User{}
+	err = testDB.Create(&user).Error
+	if err != nil {
+		t.Fatalf("Failed to create user by error %v", err)
+	}
+
+	book := domain.Book{}
+	err = testDB.Create(&book).Error
+	if err != nil {
+		t.Fatalf("Failed to create book by error %v", err)
+	}
+
+	fakeLendbookID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
+
 	type args struct {
-		p *domain.User
+		p *domain.Lendbook
 	}
 	tests := []struct {
 		name    string
@@ -30,13 +44,43 @@ func TestPGService_Create(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Success",
+			name: "create successfully",
 			args: args{
-				&domain.User{
-					Name:  "Create New User 1",
-					Email: "example@gmail.com",
+				&domain.Lendbook{
+					BookID: book.ID,
+					UserID: user.ID,
 				},
 			},
+		},
+		{
+			name: "failed update (invalid bookID)",
+			args: args{
+				&domain.Lendbook{
+					BookID: fakeLendbookID,
+					UserID: user.ID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "failed update (invalid lendbookID)",
+			args: args{
+				&domain.Lendbook{
+					BookID: book.ID,
+					UserID: fakeLendbookID,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "failed update ",
+			args: args{
+				&domain.Lendbook{
+					BookID: book.ID,
+					UserID: user.ID,
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -66,10 +110,31 @@ func TestPGService_Update(t *testing.T) {
 		t.Fatalf("Failed to create user by error %v", err)
 	}
 
-	fakeUserID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
+	book := domain.Book{}
+	err = testDB.Create(&book).Error
+	if err != nil {
+		t.Fatalf("Failed to create book by error %v", err)
+	}
+
+	mathBook := domain.Book{}
+	err = testDB.Create(&mathBook).Error
+	if err != nil {
+		t.Fatalf("Failed to create book by error %v", err)
+	}
+
+	lendbook := domain.Lendbook{
+		BookID: book.ID,
+		UserID: user.ID,
+	}
+	err = testDB.Create(&lendbook).Error
+	if err != nil {
+		t.Fatalf("Failed to create lendbook by error %v", err)
+	}
+
+	fakeLendbookID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
 
 	type args struct {
-		p *domain.User
+		p *domain.Lendbook
 	}
 	tests := []struct {
 		name    string
@@ -79,23 +144,55 @@ func TestPGService_Update(t *testing.T) {
 		{
 			name: "success update",
 			args: args{
-				&domain.User{
-					Model: domain.Model{ID: user.ID},
-					Name:  "user Name 1",
-					Email: "example@gmail.com",
+				&domain.Lendbook{
+					Model:  domain.Model{ID: lendbook.ID},
+					BookID: mathBook.ID,
+					UserID: user.ID,
 				},
 			},
 		},
 		{
-			name: "failed update",
+			name: "failed update ",
 			args: args{
-				&domain.User{
-					Model: domain.Model{ID: fakeUserID},
-					Name:  "user Name 1",
-					Email: "example@gmail.com",
+				&domain.Lendbook{
+					Model:  domain.Model{ID: fakeLendbookID},
+					UserID: user.ID,
 				},
 			},
 			wantErr: ErrNotFound,
+		},
+		{
+			name: "failed update (invalid bookID)",
+			args: args{
+				&domain.Lendbook{
+					Model:  domain.Model{ID: lendbook.ID},
+					BookID: fakeLendbookID,
+					UserID: user.ID,
+				},
+			},
+			wantErr: ErrRecordBookNotFound,
+		},
+		{
+			name: "failed update (invalid lendbookID)",
+			args: args{
+				&domain.Lendbook{
+					Model:  domain.Model{ID: lendbook.ID},
+					BookID: book.ID,
+					UserID: fakeLendbookID,
+				},
+			},
+			wantErr: ErrRecordUserNotFound,
+		},
+		{
+			name: "failed update ",
+			args: args{
+				&domain.Lendbook{
+					Model:  domain.Model{ID: lendbook.ID},
+					BookID: mathBook.ID,
+					UserID: user.ID,
+				},
+			},
+			wantErr: ErrBookIsBusy,
 		},
 	}
 	for _, tt := range tests {
@@ -124,39 +221,39 @@ func TestPGService_Find(t *testing.T) {
 		t.Fatalf("Failed to migrate table by error %v", err)
 	}
 
-	user := domain.User{}
-	err = testDB.Create(&user).Error
+	lendbook := domain.Lendbook{}
+	err = testDB.Create(&lendbook).Error
 	if err != nil {
-		t.Fatalf("Failed to create user by error %v", err)
+		t.Fatalf("Failed to create lendbook by error %v", err)
 	}
 
-	fakeUserID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
+	fakeLendbookID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
 
 	type args struct {
-		p *domain.User
+		p *domain.Lendbook
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *domain.User
+		want    *domain.Lendbook
 		wantErr error
 	}{
 		{
-			name: "success find correct user",
+			name: "success find correct lendbook",
 			args: args{
-				&domain.User{
-					Model: domain.Model{ID: user.ID},
+				&domain.Lendbook{
+					Model: domain.Model{ID: lendbook.ID},
 				},
 			},
-			want: &domain.User{
-				Model: domain.Model{ID: user.ID},
+			want: &domain.Lendbook{
+				Model: domain.Model{ID: lendbook.ID},
 			},
 		},
 		{
-			name: "failed find user by not exist user id",
+			name: "failed find lendbook by not exist lendbook id",
 			args: args{
-				&domain.User{
-					Model: domain.Model{ID: fakeUserID},
+				&domain.Lendbook{
+					Model: domain.Model{ID: fakeLendbookID},
 				},
 			},
 			wantErr: ErrNotFound,
@@ -196,7 +293,7 @@ func TestPGService_FindAll(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []domain.User
+		want    []domain.Lendbook
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -227,16 +324,16 @@ func TestPGService_Delete(t *testing.T) {
 		t.Fatalf("Failed to migrate table by error %v", err)
 	}
 
-	user := domain.User{}
-	err = testDB.Create(&user).Error
+	lendbook := domain.Lendbook{}
+	err = testDB.Create(&lendbook).Error
 	if err != nil {
-		t.Fatalf("Failed to create user by error %v", err)
+		t.Fatalf("Failed to create lendbook by error %v", err)
 	}
 
-	fakeUserID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
+	fakeLendbookID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
 
 	type args struct {
-		p *domain.User
+		p *domain.Lendbook
 	}
 	tests := []struct {
 		name    string
@@ -246,20 +343,16 @@ func TestPGService_Delete(t *testing.T) {
 		{
 			name: "success delete",
 			args: args{
-				&domain.User{
-					Name:  "This is user Name",
-					Model: domain.Model{ID: user.ID},
-					Email: "example@gmail.com",
+				&domain.Lendbook{
+					Model: domain.Model{ID: lendbook.ID},
 				},
 			},
 		},
 		{
-			name: "failed delete by not exist user id",
+			name: "failed delete by not exist lendbook id",
 			args: args{
-				&domain.User{
-					Model: domain.Model{ID: fakeUserID},
-					Name:  "This is user Name",
-					Email: "example@gmail.com",
+				&domain.Lendbook{
+					Model: domain.Model{ID: fakeLendbookID},
 				},
 			},
 			wantErr: ErrNotFound,
@@ -297,133 +390,6 @@ func TestNewPGService(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewPGService(tt.args.db); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewPGService() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_pgService_Create(t *testing.T) {
-	type args struct {
-		in0 context.Context
-		p   *domain.User
-	}
-	tests := []struct {
-		name    string
-		s       *pgService
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.s.Create(tt.args.in0, tt.args.p); (err != nil) != tt.wantErr {
-				t.Errorf("pgService.Create() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func Test_pgService_Update(t *testing.T) {
-	type args struct {
-		in0 context.Context
-		p   *domain.User
-	}
-	tests := []struct {
-		name    string
-		s       *pgService
-		args    args
-		want    *domain.User
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.s.Update(tt.args.in0, tt.args.p)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("pgService.Update() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("pgService.Update() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_pgService_Find(t *testing.T) {
-	type args struct {
-		in0 context.Context
-		p   *domain.User
-	}
-	tests := []struct {
-		name    string
-		s       *pgService
-		args    args
-		want    *domain.User
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.s.Find(tt.args.in0, tt.args.p)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("pgService.Find() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("pgService.Find() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_pgService_FindAll(t *testing.T) {
-	type args struct {
-		in0 context.Context
-	}
-	tests := []struct {
-		name    string
-		s       *pgService
-		args    args
-		want    []domain.User
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.s.FindAll(tt.args.in0)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("pgService.FindAll() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("pgService.FindAll() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_pgService_Delete(t *testing.T) {
-	type args struct {
-		in0 context.Context
-		p   *domain.User
-	}
-	tests := []struct {
-		name    string
-		s       *pgService
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.s.Delete(tt.args.in0, tt.args.p); (err != nil) != tt.wantErr {
-				t.Errorf("pgService.Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

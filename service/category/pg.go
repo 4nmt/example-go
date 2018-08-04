@@ -58,14 +58,15 @@ func (s *pgService) Update(_ context.Context, p *domain.Category) (*domain.Categ
 
 // Find implement Find for Category service
 func (s *pgService) Find(_ context.Context, p *domain.Category) (*domain.Category, error) {
+
 	res := p
+
 	if err := s.db.Find(&res).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrNotFound
 		}
 		return nil, err
 	}
-
 	return res, nil
 }
 
