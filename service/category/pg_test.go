@@ -249,6 +249,12 @@ func TestPGService_Delete(t *testing.T) {
 		t.Fatalf("Failed to create category by error %v", err)
 	}
 
+	book := domain.Book{CategoryID: category.ID, Name: "English"}
+	err = testDB.Create(&book).Error
+	if err != nil {
+		t.Fatalf("Failed to create book by error %v", err)
+	}
+
 	fakeCategoryID := domain.MustGetUUIDFromString("1698bbd6-e0c8-4957-a5a9-8c536970994b")
 
 	type args struct {
@@ -279,11 +285,13 @@ func TestPGService_Delete(t *testing.T) {
 			wantErr: ErrNotFound,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &pgService{
 				db: testDB,
 			}
+
 			err := s.Delete(context.Background(), tt.args.p)
 			if err != nil && err != tt.wantErr {
 				t.Errorf("pgService.Delete() error = %v, wantErr %v", err, tt.wantErr)
@@ -292,11 +300,25 @@ func TestPGService_Delete(t *testing.T) {
 			if err == nil && tt.wantErr != nil {
 				t.Errorf("pgService.Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			res := &domain.Book{CategoryID: tt.args.p.ID}
+
+			if err = testDB.Find(res).Error; err != nil {
+				if err == gorm.ErrRecordNotFound {
+				} else {
+					t.Errorf("pgService.Delete() error = %vx", err)
+				}
+			}
+			if len(res.Name) > 0 {
+				t.Errorf("Books are still existing error = %v, wantErr %v", err, tt.wantErr)
+			}
+
 		})
 	}
 }
 
 func TestNewPGService(t *testing.T) {
+
 	type args struct {
 		db *gorm.DB
 	}
